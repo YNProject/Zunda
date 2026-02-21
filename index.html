@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Zunda AR Final</title>
+  <title>Zunda AR</title>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
@@ -15,11 +15,14 @@
     .joystick.origin { position: absolute; width: 80px; height: 80px; border: 2px solid white; border-radius: 50%; background: rgba(255,255,255,0.2); transform: translate(-50%, -50%); }
     .joystick.position { position: absolute; width: 40px; height: 40px; background: white; border-radius: 50%; transform: translate(-50%, -50%); }
     #recenterBtn { position: absolute; bottom: 20px; right: 20px; width: 60px; height: 60px; pointer-events: auto; background: white; border-radius: 50%; padding: 10px; }
+    
+    /* A-Frameの右下ボタンをCSSでも念のため隠す */
+    .a-enter-vr { display: none !important; }
   </style>
 </head>
 <body>
   <div id="overlay">
-    <h3 id="instruction">START (TAP TO ENABLE CAMERA)</h3>
+    <h3 id="instruction">START (TAP TO ENABLE)</h3>
     <div id="joystick-container">
       <div class="joystick origin"></div>
       <div class="joystick position"></div>
@@ -29,12 +32,14 @@
 
   <a-scene mindar-image="imageTargetSrc: ; autoStart: true; uiLoading: no; uiScanning: no;" 
            vr-mode-ui="enabled: false" 
+           device-orientation-permission-ui="enabled: false"
            renderer="colorManagement: true, antialias: true">
+    
     <a-assets>
       <a-asset-item id="zunda_model" src="assets/zunda.glb"></a-asset-item>
     </a-assets>
 
-    <a-camera id="camera" look-controls="enabled: true; touchEnabled: false" wasd-controls-enabled="false"></a-camera>
+    <a-camera id="camera" look-controls="enabled: true; touchEnabled: false"></a-camera>
 
     <a-entity id="character" character-move character-recenter visible="false">
       <a-entity id="zunda_body" gltf-model="#zunda_model" scale="0.5 0.5 0.5" rotation="0 180 0"></a-entity>

@@ -1,11 +1,7 @@
-// 1. iOSのカメラ・センサー許可を強制
+// iOSセンサー・カメラ起動
 window.addEventListener('touchstart', function() {
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-    DeviceOrientationEvent.requestPermission().then(response => {
-      if (response === 'granted') {
-        console.log("Sensor granted");
-      }
-    }).catch(console.error);
+    DeviceOrientationEvent.requestPermission().catch(console.error);
   }
 }, { once: true });
 
@@ -24,25 +20,8 @@ AFRAME.registerComponent('character-move', {
     this.startPos = { x: 0, y: 0 };
     this.currentPos = { x: 0, y: 0 };
     this.joyContainer = document.getElementById('joystick-container');
-
-    window.addEventListener('touchstart', (e) => {
-      if (!this.el.getAttribute('visible')) return;
-      this.active = true;
-      this.startPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      this.currentPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      this.joyContainer.style.display = 'block';
-    });
-
-    window.addEventListener('touchmove', (e) => {
-      if (!this.active) return;
-      this.currentPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    });
-
-    window.addEventListener('touchend', () => {
-      this.active = false;
-      this.joyContainer.style.display = 'none';
-      this.setAnim('IDLE');
-    });
+    this.joyOrigin = document.querySelector('.joystick.origin');
+    this.joyPos = document.querySelector('.joystick.position');
   },
 
   setAnim(name) {
@@ -53,7 +32,29 @@ AFRAME.registerComponent('character-move', {
   },
 
   tick(time, timeDelta) {
+    // タッチ開始
+    if (!this.active) {
+      window.addEventListener('touchstart', (e) => {
+        if (!this.el.getAttribute('visible')) return;
+        this.active = true;
+        this.startPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        this.currentPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        this.joyContainer.style.display = 'block';
+      }, { once: true });
+    }
+
     if (!this.active) return;
+
+    // タッチ中
+    window.addEventListener('touchmove', (e) => {
+      this.currentPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+      this.active = false;
+      this.joyContainer.style.display = 'none';
+      this.setAnim('IDLE');
+    }, { once: true });
 
     const dx = this.currentPos.x - this.startPos.x;
     const dy = this.currentPos.y - this.startPos.y;
@@ -61,16 +62,13 @@ AFRAME.registerComponent('character-move', {
     const angle = Math.atan2(dy, dx);
 
     // ジョイスティックUI
-    const joyOrigin = document.querySelector('.joystick.origin');
-    const joyPos = document.querySelector('.joystick.position');
-    joyOrigin.style.left = `${this.startPos.x}px`;
-    joyOrigin.style.top = `${this.startPos.y}px`;
+    this.joyOrigin.style.left = `${this.startPos.x}px`;
+    this.joyOrigin.style.top = `${this.startPos.y}px`;
     const d = Math.min(distance, 40);
-    joyPos.style.left = `${this.startPos.x + Math.cos(angle) * d}px`;
-    joyPos.style.top = `${this.startPos.y + Math.sin(angle) * d}px`;
+    this.joyPos.style.left = `${this.startPos.x + Math.cos(angle) * d}px`;
+    this.joyPos.style.top = `${this.startPos.y + Math.sin(angle) * d}px`;
 
     if (distance > 5) {
-      // カメラの回転(ラジアン)を取得
       const camRotY = this.camera.object3D.rotation.y;
       const moveAngle = angle - camRotY;
       
@@ -78,7 +76,7 @@ AFRAME.registerComponent('character-move', {
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
 
-      // ★向き修正：進行方向に対して正面を向く (-Math.PI / 2)
+      // ★向き修正：進行方向へ顔を向ける (-Math.PI / 2)
       this.el.object3D.rotation.y = -moveAngle - Math.PI / 2;
 
       this.setAnim('WALK');
@@ -93,10 +91,8 @@ AFRAME.registerComponent('character-recenter', {
     this.spawned = false;
     this.el.sceneEl.addEventListener('click', (e) => {
       if (e.target.closest('#overlay') || this.spawned) return;
-
       const cam = document.querySelector('#camera').object3D;
       const dist = 3.0;
-      // カメラの前方にスポーン
       this.el.object3D.position.set(
         cam.position.x - Math.sin(cam.rotation.y) * dist,
         -1.5,
