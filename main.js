@@ -86,12 +86,12 @@ AFRAME.registerComponent('character-recenter', {
 
                 // 【絶対座標計算】
                 // タップした「点」は無視し、カメラの向きから「水平に5m先」かつ「垂直に3m下」を算出
-                const distance = 5.0;
+                const distance = 10.0;
                 const spawnPosX = -Math.sin(camRotY) * distance;
                 const spawnPosZ = -Math.cos(camRotY) * distance;
 
                 // 身長に合わせてここを調整（-3.0で浮くなら、-4.0や-5.0を試す価値あり）
-                const spawnPosY = -3.0;
+                const spawnPosY = -10.0;
 
                 // 位置を設定
                 this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
