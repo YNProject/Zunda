@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Zunda AR - Restored</title>
+  <title>Zunda AR - Smooth Animation</title>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
@@ -17,8 +17,7 @@
 
   <a-scene 
     mindar-image="imageTargetSrc: ; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;" 
-    color-space="sRGB" 
-    renderer="colorManagement: true, physicallyCorrectLights: true"
+    renderer="colorManagement: true, antialias: true"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: true">
 
@@ -30,12 +29,7 @@
       <a-entity cursor="rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
     </a-camera>
 
-    <a-entity
-      id="character"
-      character-move
-      character-recenter
-      visible="false">
-      
+    <a-entity id="character" character-move character-recenter visible="false">
       <a-entity
         gltf-model="#zunda_model"
         scale="0.5 0.5 0.5"
@@ -45,7 +39,7 @@
 
       <a-circle 
         rotation="-90 0 0" 
-        radius="0.8" 
+        radius="0.4" 
         color="#000" 
         material="transparent: true; opacity: 0.4">
       </a-circle>
