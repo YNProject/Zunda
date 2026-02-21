@@ -28,25 +28,22 @@
       <a-asset-item id="zunda_model" src="assets/zunda.glb"></a-asset-item>
     </a-assets>
 
-<a-camera id="camera" position="0 0 0" look-controls></a-camera>
+<a-camera id="camera" 
+          position="0 0 0" 
+          look-controls 
+          camera="near: 0.01; far: 10000;"></a-camera>
 
-<a-plane id="dummy-floor" 
-         rotation="-90 0 0" 
-         position="0 -3.0 0" 
-         width="100" height="100" 
-         material="color: #4CC3D9; opacity: 0.3; side: double" 
-         class="clickable">
-</a-plane>
-
-    <a-entity
-      id="character"
-      character-move
-      character-recenter
-      gltf-model="#zunda_model"
-      visible="false"
-      scale="0.5 0.5 0.5"
-      shadow>
-    </a-entity>
+<a-entity id="dummy-floor"
+          geometry="primitive: plane; width: 1000; height: 1000;"
+          rotation="-90 0 0"
+          position="0 -3.0 0"
+          material="src: url(https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/textures/grid.png); 
+                    repeat: 1000 1000; 
+                    transparent: true; 
+                    opacity: 0.5;
+                    color: #4CC3D9"
+          class="clickable">
+</a-entity>
 
     <a-light type="directional" intensity="1.2" position="1 5 2"></a-light>
     <a-light type="ambient" intensity="0.6"></a-light>
