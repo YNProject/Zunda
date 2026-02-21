@@ -1,41 +1,45 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Zunda AR Final</title>
+  <title>Zunda AR</title>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
-  <link rel="stylesheet" href="main.css">
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+    #instruction { position: absolute; top: 20px; width: 100%; text-align: center; color: white; text-shadow: 1px 1px 2px black; font-family: sans-serif; }
+    #joystick-container { position: fixed; display: none; width: 100px; height: 100px; z-index: 20; pointer-events: none; }
+    .joystick.origin { position: absolute; width: 80px; height: 80px; border: 2px solid white; border-radius: 50%; background: rgba(255,255,255,0.2); transform: translate(-50%, -50%); }
+    .joystick.position { position: absolute; width: 40px; height: 40px; background: white; border-radius: 50%; transform: translate(-50%, -50%); }
+    #recenterBtn { position: absolute; bottom: 20px; right: 20px; width: 60px; height: 60px; pointer-events: auto; background: white; border-radius: 50%; padding: 10px; }
+  </style>
 </head>
 <body>
   <div id="overlay">
-    <img id="recenterBtn" src="assets/reset.svg" style="position: absolute; top: 20px; right: 20px; width: 50px; pointer-events: auto;">
     <h3 id="instruction">TAP TO START</h3>
-    
     <div id="joystick-container">
       <div class="joystick origin"></div>
       <div class="joystick position"></div>
     </div>
+    <img id="recenterBtn" src="assets/reset.svg">
   </div>
 
-  <a-scene mindar-image="imageTargetSrc: ; autoStart: true; uiLoading: no; uiScanning: no;" renderer="colorManagement: true, antialias: true" vr-mode-ui="enabled: false">
+  <a-scene renderer="colorManagement: true">
     <a-assets>
       <a-asset-item id="zunda_model" src="assets/zunda.glb"></a-asset-item>
     </a-assets>
 
-    <a-camera id="camera" position="0 0 0" look-controls="touchEnabled: false;" near="0.01"></a-camera>
+    <a-camera id="camera" look-controls="touchEnabled: false"></a-camera>
 
     <a-entity id="character" character-move character-recenter visible="false">
       <a-entity id="zunda_body" gltf-model="#zunda_model" scale="0.5 0.5 0.5" rotation="0 180 0"></a-entity>
-      <a-circle rotation="-90 0 0" radius="0.4" color="#000" material="transparent: true; opacity: 0.4"></a-circle>
+      <a-circle rotation="-90 0 0" radius="0.3" color="black" material="transparent: true; opacity: 0.4"></a-circle>
     </a-entity>
 
-    <a-plane id="ground" rotation="-90 0 0" position="0 -1.5 0" width="100" height="100" material="transparent: true; opacity: 0" class="clickable"></a-plane>
-
-    <a-light type="directional" intensity="1.2" position="1 5 2"></a-light>
-    <a-light type="ambient" intensity="0.6"></a-light>
+    <a-light type="directional" intensity="1" position="1 3 2"></a-light>
+    <a-light type="ambient" intensity="0.5"></a-light>
   </a-scene>
 
   <script src="main.js"></script>
