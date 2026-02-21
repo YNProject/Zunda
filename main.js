@@ -70,49 +70,36 @@ AFRAME.registerComponent('character-move', {
 });
 
 AFRAME.registerComponent('character-recenter', {
-    init() {
-        this.spawned = false;
-        const scene = this.el.sceneEl;
-        const instruction = document.getElementById('instruction');
+  init() {
+    this.spawned = false;
+    const scene = this.el.sceneEl;
 
-        // character-recenter コンポーネント内のクリックイベントを以下に差し替え
-        scene.addEventListener('click', (e) => {
-            if (!this.spawned) {
-                const cameraEl = document.querySelector('#camera');
+    scene.addEventListener('click', (e) => {
+      // ボタンクリックは除外
+      if (e.target.closest('#overlay')) return;
 
-                // スマホが今「水平方向のどっちを向いているか」だけを取得
-                const rotation = cameraEl.getAttribute('rotation');
-                const camRotY = rotation.y * (Math.PI / 180); // 度をラジアンに変換
+      if (!this.spawned) {
+        // A-Frameのカメラエンティティから直接回転値を取る
+        const camRotation = document.querySelector('#camera').getAttribute('rotation');
+        // 度からラジアンへ変換
+        const angleY = camRotation.y * (Math.PI / 180);
 
-                // 【絶対座標計算】
-                // タップした「点」は無視し、カメラの向きから「水平に5m先」かつ「垂直に3m下」を算出
-                const distance = 10.0;
-                const spawnPosX = -Math.sin(camRotY) * distance;
-                const spawnPosZ = -Math.cos(camRotY) * distance;
+        // カメラの5m前方、高さ3m下に配置
+        const dist = 5.0;
+        const x = -Math.sin(angleY) * dist;
+        const z = -Math.cos(angleY) * dist;
+        const y = -3.0; // 強制的に3m下
 
-                // 身長に合わせてここを調整（-3.0で浮くなら、-4.0や-5.0を試す価値あり）
-                const spawnPosY = -10.0;
-
-                // 位置を設定
-                this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
-
-                // キャラクターを自分の方に向ける
-                this.el.object3D.rotation.set(0, camRotY + Math.PI, 0);
-
-                this.el.setAttribute('visible', 'true');
-                this.spawned = true;
-                document.getElementById('instruction').innerText = "DRAG TO MOVE";
-
-                // デバッグ用：今設定した座標をコンソールに出す
-                console.log(`Spawned at Y: ${spawnPosY}, Dist: ${distance}`);
-            }
-        });
-
-        document.getElementById('recenterBtn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.spawned = false;
-            this.el.setAttribute('visible', 'false');
-            instruction.innerText = "TAP TO SPAWN";
-        });
-    }
+        this.el.object3D.position.set(x, y, z);
+        this.el.object3D.rotation.set(0, angleY + Math.PI, 0); // 自分の方を向かせる
+        
+        this.el.setAttribute('visible', 'true');
+        this.spawned = true;
+        document.getElementById('instruction').innerText = "SPAWNED";
+        
+        console.log("Current Cam Rotation Y:", camRotation.y);
+        console.log("Calculated Position:", x, y, z);
+      }
+    });
+  }
 });
