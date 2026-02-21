@@ -1,41 +1,47 @@
-// センサー許可と初期化
-const sceneEl = document.querySelector('a-scene');
-
-sceneEl.addEventListener('click', () => {
-  // iOS センサー許可
+// センサー・オーディオ許可
+window.addEventListener('click', () => {
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().catch(console.error);
   }
   const instr = document.getElementById('instruction');
-  if(instr.innerText.includes("START")) instr.innerText = "LOOK DOWN & TAP";
-});
+  if(instr.innerText.includes("START")) instr.innerText = "TAP TO SPAWN";
+}, { once: false });
 
 AFRAME.registerComponent('character-recenter', {
   init() {
     this.spawned = false;
-    // a-scene自体のクリックを監視（Mind-ARの干渉を避けるため）
     this.el.sceneEl.addEventListener('mousedown', (e) => {
-      // リセットボタンなどを押した時は無視
       if (e.target.closest('#overlay')) return;
 
       if (!this.spawned) {
         const cameraEl = document.querySelector('#camera');
+        
+        // カメラの水平方向の向きを取得
         const rotation = cameraEl.getAttribute('rotation');
         const angleY = rotation.y * (Math.PI / 180);
 
-        // 身長180cmからの視点を想定：5m先、3m下
-        const dist = 5.0; 
-        const x = -Math.sin(angleY) * dist;
-        const z = -Math.cos(angleY) * dist;
-        const y = -3.0; // 地面の高さ
+        // 出現位置：6メートル前方（近すぎて消えるのを防ぐ）
+        const dist = 6.0; 
+        const spawnPosX = -Math.sin(angleY) * dist;
+        const spawnPosZ = -Math.cos(angleY) * dist;
+        
+        // 床の高さ：-3.0m
+        const spawnPosY = -3.0; 
 
-        this.el.object3D.position.set(x, y, z);
+        // 位置と向きを設定
+        this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
         this.el.object3D.rotation.set(0, angleY + Math.PI, 0); 
+        
+        // 表示をONにし、アニメーションを確実に開始
         this.el.setAttribute('visible', 'true');
+        if (this.el.components['animation-mixer']) {
+          this.el.components['animation-mixer'].play();
+        }
+        
         this.spawned = true;
         document.getElementById('instruction').innerText = "DRAG TO MOVE";
         
-        console.log("Spawned at:", x, y, z);
+        console.log("Character Spawned at distance 6.0m");
       }
     });
 
@@ -43,7 +49,7 @@ AFRAME.registerComponent('character-recenter', {
       e.stopPropagation();
       this.spawned = false;
       this.el.setAttribute('visible', 'false');
-      document.getElementById('instruction').innerText = "LOOK DOWN & TAP";
+      document.getElementById('instruction').innerText = "TAP TO SPAWN";
     });
   }
 });
@@ -54,14 +60,15 @@ AFRAME.registerComponent('character-move', {
     this.active = false;
     this.startPos = { x: 0, y: 0 };
     this.currentPos = { x: 0, y: 0 };
-
     const overlay = document.getElementById('overlay');
+    
     this.joystickParent = document.createElement('div');
     this.joystickParent.className = 'joystick-container';
     this.joystickOrigin = document.createElement('div');
     this.joystickOrigin.className = 'joystick origin';
     this.joystickPosition = document.createElement('div');
     this.joystickPosition.className = 'joystick position';
+    
     this.joystickParent.appendChild(this.joystickOrigin);
     this.joystickParent.appendChild(this.joystickPosition);
     overlay.appendChild(this.joystickParent);
@@ -100,12 +107,15 @@ AFRAME.registerComponent('character-move', {
     this.joystickPosition.style.top = `${this.startPos.y + Math.sin(angle) * clampedDist}px`;
 
     if (distance > 5) {
-      const camY = this.camera.object3D.rotation.y;
+      const camRot = this.camera.getAttribute('rotation');
+      const camY = camRot.y * (Math.PI / 180);
       const moveAngle = angle - camY;
       const speed = 0.005;
+      
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
-      this.el.object3D.position.y = -3.0;
+      this.el.object3D.position.y = -3.0; // 床の高さ固定
+
       this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
       this.el.setAttribute('animation-mixer', {clip: 'WALK', loop: 'repeat'});
     }

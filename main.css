@@ -14,8 +14,7 @@ h3 {
   text-align: center; color: white; font-family: sans-serif;
   text-shadow: 0 0 10px rgba(0,0,0,0.8);
 }
-.joystick-container { display: none; }
-.joystick-container.visible { display: block; }
+.joystick-container { position: fixed; display: none; pointer-events: none; }
 .joystick {
   position: fixed; border-radius: 50%;
   transform: translate(-50%, -50%); border: 2px solid white;
