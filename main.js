@@ -1,4 +1,3 @@
-// iOSセンサー許可
 window.addEventListener('click', function requestAccess() {
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().catch(console.error);
@@ -11,7 +10,7 @@ AFRAME.registerComponent('character-move', {
   init() {
     this.camera = document.querySelector('#camera');
     this.active = false;
-    this.currentAnim = "IDLE"; // ★アニメ状態を記録する変数を追加
+    this.currentAnim = "IDLE";
     this.startPos = { x: 0, y: 0 };
     this.currentPos = { x: 0, y: 0 };
     const overlay = document.getElementById('overlay');
@@ -39,15 +38,13 @@ AFRAME.registerComponent('character-move', {
     window.addEventListener('touchend', () => {
       this.active = false;
       this.joystickParent.classList.remove('visible');
-      this.setAnimation('IDLE'); // ★関数経由でセット
+      this.setAnimation('IDLE');
     });
   },
 
-  // ★アニメーションがリセットされ続けないようにガードする関数
   setAnimation(animName) {
     if (this.currentAnim !== animName) {
       this.currentAnim = animName;
-      // モデル本体（zunda_body）に命令を送る
       const model = document.querySelector('#zunda_body') || this.el;
       model.setAttribute('animation-mixer', {clip: animName, loop: 'repeat'});
     }
@@ -68,20 +65,20 @@ AFRAME.registerComponent('character-move', {
     this.joystickPosition.style.top = `${this.startPos.y + Math.sin(angle) * clampedDist}px`;
 
     if (distance > 5) {
-      // 【完全復元】うまくいっていた時の移動ロジック
       const camY = this.camera.object3D.rotation.y;
       const moveAngle = angle - camY; 
       const speed = 0.005;
       
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
-      this.el.object3D.position.y = -3.0; // 地面の高さ（以前の調整に合わせるなら-3.0）
+      this.el.object3D.position.y = -3.0;
 
-      this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
+      // 【ここを修正しました】
+      this.el.object3D.rotation.y = -moveAngle - Math.PI / 2;
       
-      this.setAnimation('WALK'); // ★関数経由でセット
+      this.setAnimation('WALK');
     } else {
-      this.setAnimation('IDLE'); // ★関数経由でセット
+      this.setAnimation('IDLE');
     }
   }
 });
@@ -97,11 +94,10 @@ AFRAME.registerComponent('character-recenter', {
       if (!this.spawned) {
         const cameraEl = document.querySelector('#camera');
         const camRotY = cameraEl.object3D.rotation.y;
-        
-        const distance = 5.0; // 少し離れた位置
+        const distance = 5.0;
         const spawnPosX = cameraEl.object3D.position.x - Math.sin(camRotY) * distance;
         const spawnPosZ = cameraEl.object3D.position.z - Math.cos(camRotY) * distance;
-        const spawnPosY = -3.0; // 地面の高さ
+        const spawnPosY = -3.0;
 
         this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
         this.el.object3D.rotation.y = camRotY + Math.PI; 
