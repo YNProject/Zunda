@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Zunda AR - Distance Fix</title>
+  <title>Zunda AR - Restoration</title>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
@@ -17,33 +17,37 @@
 
   <a-scene 
     mindar-image="imageTargetSrc: ; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;" 
+    embedded
     color-space="sRGB" 
     renderer="colorManagement: true, physicallyCorrectLights: true"
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: true"
-    raycaster="objects: .clickable"
-    cursor="rayOrigin: mouse">
+    device-orientation-permission-ui="enabled: true">
 
     <a-assets>
       <a-asset-item id="zunda_model" src="assets/zunda.glb"></a-asset-item>
     </a-assets>
 
-<a-camera id="camera" 
-          position="0 0 0" 
-          look-controls 
-          camera="near: 0.01; far: 10000;"></a-camera>
+    <a-camera id="camera" position="0 0 0" look-controls="magicWindowTrackingEnabled: true; touchEnabled: false;" near="0.05" far="10000">
+      <a-entity cursor="rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
+    </a-camera>
 
-<a-entity id="dummy-floor"
-          geometry="primitive: plane; width: 1000; height: 1000;"
-          rotation="-90 0 0"
-          position="0 -3.0 0"
-          material="src: url(https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/textures/grid.png); 
-                    repeat: 1000 1000; 
-                    transparent: true; 
-                    opacity: 0.5;
-                    color: #4CC3D9"
-          class="clickable">
-</a-entity>
+    <a-plane id="dummy-floor" 
+             rotation="-90 0 0" 
+             position="0 -3.0 0" 
+             width="1000" height="1000" 
+             material="color: #4CC3D9; opacity: 0.2; transparent: true; side: double" 
+             class="clickable">
+    </a-plane>
+
+    <a-entity
+      id="character"
+      character-move
+      character-recenter
+      gltf-model="#zunda_model"
+      visible="false"
+      scale="0.5 0.5 0.5"
+      shadow>
+    </a-entity>
 
     <a-light type="directional" intensity="1.2" position="1 5 2"></a-light>
     <a-light type="ambient" intensity="0.6"></a-light>
