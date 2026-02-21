@@ -1,14 +1,18 @@
-// 1. iOSセンサー許可（カメラを動かすために必須）
-window.addEventListener('click', function requestAccess() {
+// 1. iOSのカメラ・センサー許可を強制
+window.addEventListener('touchstart', function() {
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-    DeviceOrientationEvent.requestPermission().then(state => {
-      if(state === 'granted') {
-        document.getElementById('instruction').innerText = "TAP TO SPAWN";
+    DeviceOrientationEvent.requestPermission().then(response => {
+      if (response === 'granted') {
+        console.log("Sensor granted");
       }
     }).catch(console.error);
-  } else {
-    const instr = document.getElementById('instruction');
-    if (instr && instr.innerText.includes("START")) { instr.innerText = "TAP TO SPAWN"; }
+  }
+}, { once: true });
+
+window.addEventListener('click', function() {
+  const instr = document.getElementById('instruction');
+  if (instr && instr.innerText.includes("START")) { 
+    instr.innerText = "TAP TO SPAWN"; 
   }
 }, { once: true });
 
@@ -19,10 +23,7 @@ AFRAME.registerComponent('character-move', {
     this.currentAnim = ""; 
     this.startPos = { x: 0, y: 0 };
     this.currentPos = { x: 0, y: 0 };
-    
     this.joyContainer = document.getElementById('joystick-container');
-    this.joyOrigin = document.querySelector('.joystick.origin');
-    this.joyPos = document.querySelector('.joystick.position');
 
     window.addEventListener('touchstart', (e) => {
       if (!this.el.getAttribute('visible')) return;
@@ -47,8 +48,7 @@ AFRAME.registerComponent('character-move', {
   setAnim(name) {
     if (this.currentAnim !== name) {
       this.currentAnim = name;
-      const body = document.querySelector('#zunda_body');
-      body.setAttribute('animation-mixer', {clip: name, loop: 'repeat'});
+      document.querySelector('#zunda_body').setAttribute('animation-mixer', {clip: name, loop: 'repeat'});
     }
   },
 
@@ -60,24 +60,25 @@ AFRAME.registerComponent('character-move', {
     const distance = Math.sqrt(dx * dx + dy * dy);
     const angle = Math.atan2(dy, dx);
 
-    this.joyOrigin.style.left = `${this.startPos.x}px`;
-    this.joyOrigin.style.top = `${this.startPos.y}px`;
-    const clampedDist = Math.min(distance, 40);
-    this.joyPos.style.left = `${this.startPos.x + Math.cos(angle) * clampedDist}px`;
-    this.joyPos.style.top = `${this.startPos.y + Math.sin(angle) * clampedDist}px`;
+    // ジョイスティックUI
+    const joyOrigin = document.querySelector('.joystick.origin');
+    const joyPos = document.querySelector('.joystick.position');
+    joyOrigin.style.left = `${this.startPos.x}px`;
+    joyOrigin.style.top = `${this.startPos.y}px`;
+    const d = Math.min(distance, 40);
+    joyPos.style.left = `${this.startPos.x + Math.cos(angle) * d}px`;
+    joyPos.style.top = `${this.startPos.y + Math.sin(angle) * d}px`;
 
     if (distance > 5) {
-      // カメラの向き（ラジアン）を取得
-      const camRot = this.camera.object3D.rotation.y;
-      const moveAngle = angle - camRot;
+      // カメラの回転(ラジアン)を取得
+      const camRotY = this.camera.object3D.rotation.y;
+      const moveAngle = angle - camRotY;
+      
       const speed = 0.005;
-
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
-      this.el.object3D.position.y = -3.0;
 
-      // ★向きの修正：進行方向を向くように Math.PI（180度）の調整を変更
-      // 逆を向く場合は、ここの -Math.PI / 2 を +Math.PI / 2 に変えてみてください
+      // ★向き修正：進行方向に対して正面を向く (-Math.PI / 2)
       this.el.object3D.rotation.y = -moveAngle - Math.PI / 2;
 
       this.setAnim('WALK');
@@ -93,16 +94,15 @@ AFRAME.registerComponent('character-recenter', {
     this.el.sceneEl.addEventListener('click', (e) => {
       if (e.target.closest('#overlay') || this.spawned) return;
 
-      const camRot = document.querySelector('#camera').object3D.rotation.y;
-      const dist = 5.0;
-      // カメラの正面座標を計算
-      const x = -Math.sin(camRot) * dist;
-      const z = -Math.cos(camRot) * dist;
-      const y = -3.0;
-
-      this.el.object3D.position.set(x, y, z);
-      // キャラクターがこちらを向くように設定
-      this.el.object3D.rotation.set(0, camRot + Math.PI, 0); 
+      const cam = document.querySelector('#camera').object3D;
+      const dist = 3.0;
+      // カメラの前方にスポーン
+      this.el.object3D.position.set(
+        cam.position.x - Math.sin(cam.rotation.y) * dist,
+        -1.5,
+        cam.position.z - Math.cos(cam.rotation.y) * dist
+      );
+      this.el.object3D.rotation.set(0, cam.rotation.y + Math.PI, 0); 
       this.el.setAttribute('visible', 'true');
       this.spawned = true;
       document.getElementById('instruction').innerText = "DRAG TO MOVE";
