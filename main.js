@@ -70,36 +70,45 @@ AFRAME.registerComponent('character-move', {
 });
 
 AFRAME.registerComponent('character-recenter', {
-  init() {
-    this.spawned = false;
-    const scene = this.el.sceneEl;
+    init() {
+        this.spawned = false;
+        const scene = this.el.sceneEl;
 
-    scene.addEventListener('click', (e) => {
-      // ボタンクリックは除外
-      if (e.target.closest('#overlay')) return;
+        scene.addEventListener('click', (e) => {
+            if (e.target.closest('#overlay')) return;
 
-      if (!this.spawned) {
-        // A-Frameのカメラエンティティから直接回転値を取る
-        const camRotation = document.querySelector('#camera').getAttribute('rotation');
-        // 度からラジアンへ変換
-        const angleY = camRotation.y * (Math.PI / 180);
+            if (!this.spawned) {
+                const cameraEl = document.querySelector('#camera');
+                const camObject = cameraEl.object3D;
 
-        // カメラの5m前方、高さ3m下に配置
-        const dist = 5.0;
-        const x = -Math.sin(angleY) * dist;
-        const z = -Math.cos(angleY) * dist;
-        const y = -3.0; // 強制的に3m下
+                // 現在のカメラの向き（Quaternion: 回転情報）から「真下」を計算
+                const forward = new THREE.Vector3(0, 0, -1);
+                forward.applyQuaternion(camObject.quaternion);
 
-        this.el.object3D.position.set(x, y, z);
-        this.el.object3D.rotation.set(0, angleY + Math.PI, 0); // 自分の方を向かせる
-        
-        this.el.setAttribute('visible', 'true');
-        this.spawned = true;
-        document.getElementById('instruction').innerText = "SPAWNED";
-        
-        console.log("Current Cam Rotation Y:", camRotation.y);
-        console.log("Calculated Position:", x, y, z);
-      }
-    });
-  }
+                // 【重要】カメラの角度に関わらず、水平面(Y=0)との交点を計算するのではなく、
+                // 「今自分が見ている方向の数メートル先」の「絶対的な高さ -3m」に置く
+                const camRotation = cameraEl.getAttribute('rotation');
+                const angleY = camRotation.y * (Math.PI / 180);
+
+                // あなたの身長(180cm)とスマホの位置を考慮
+                const distance = 4.0;
+                const spawnPosX = camObject.position.x - Math.sin(angleY) * distance;
+                const spawnPosZ = camObject.position.z - Math.cos(angleY) * distance;
+
+                // 青い床が上すぎたので、さらに下げて設定します
+                const spawnPosY = -4.5;
+
+                this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
+                this.el.object3D.rotation.set(0, angleY + Math.PI, 0);
+
+                this.el.setAttribute('visible', 'true');
+                this.spawned = true;
+                document.getElementById('instruction').innerText = "DRAG TO MOVE";
+
+                // 青いデバッグ床も、ずんだもんと同じ高さに移動させる
+                const floor = document.querySelector('#dummy-floor');
+                if (floor) floor.setAttribute('position', `0 ${spawnPosY} 0`);
+            }
+        });
+    }
 });
