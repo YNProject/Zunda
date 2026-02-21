@@ -87,28 +87,35 @@ AFRAME.registerComponent('character-recenter', {
     const scene = this.el.sceneEl;
     const instruction = document.getElementById('instruction');
 
-    scene.addEventListener('click', (e) => {
-      const intersection = e.detail.intersection;
-      
-      // 床がクリックされた場合のみ実行
-      if (intersection && !this.spawned && e.target.id === 'dummy-floor') {
-        const cameraEl = document.querySelector('#camera');
-        
-        // カメラの向き（Y軸回転）を取得
-        const camRotY = cameraEl.object3D.rotation.y;
+scene.addEventListener('click', (e) => {
+  const intersection = e.detail.intersection;
+  const instruction = document.getElementById('instruction');
 
-        // 【改善】タップ位置に関わらず、カメラの「2メートル前方」を計算する
-        // これにより「近すぎ」「上すぎ」を防ぎます
-        const spawnPosX = cameraEl.object3D.position.x - Math.sin(camRotY) * 2.0;
-        const spawnPosZ = cameraEl.object3D.position.z - Math.cos(camRotY) * 2.0;
-        const spawnPosY = 0; // 地面
+  if (intersection && !this.spawned && e.target.id === 'dummy-floor') {
+    const cameraEl = document.querySelector('#camera');
+    
+    // カメラの向き（Y軸回転）を取得
+    const camRotY = cameraEl.object3D.rotation.y;
 
-        this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
-        this.el.setAttribute('visible', 'true');
-        this.spawned = true;
-        instruction.innerText = "DRAG TO MOVE";
-      }
-    });
+    // 【重要】カメラの座標に関わらず、地面(Y=0)に配置する
+    // 距離を2.5メートルに少し伸ばして、視界に入りやすくします
+    const distance = 2.5; 
+    const spawnPosX = cameraEl.object3D.position.x - Math.sin(camRotY) * distance;
+    const spawnPosZ = cameraEl.object3D.position.z - Math.cos(camRotY) * distance;
+    
+    // Y座標を 0 に固定（空中浮遊を防止）
+    const spawnPosY = 0; 
+
+    this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
+    
+    // キャラクターの向きをカメラの方へ向ける
+    this.el.object3D.rotation.y = camRotY + Math.PI; 
+
+    this.el.setAttribute('visible', 'true');
+    this.spawned = true;
+    instruction.innerText = "DRAG TO MOVE";
+  }
+});
 
     // リセンターボタンでリセット
     document.getElementById('recenterBtn').addEventListener('click', (e) => {
