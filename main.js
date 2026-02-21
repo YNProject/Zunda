@@ -1,11 +1,52 @@
-// センサー許可
-window.addEventListener('click', () => {
+// センサー許可と初期化
+const sceneEl = document.querySelector('a-scene');
+
+sceneEl.addEventListener('click', () => {
+  // iOS センサー許可
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().catch(console.error);
   }
   const instr = document.getElementById('instruction');
-  if(instr.innerText.includes("START")) instr.innerText = "TAP TO SPAWN";
-}, { once: false });
+  if(instr.innerText.includes("START")) instr.innerText = "LOOK DOWN & TAP";
+});
+
+AFRAME.registerComponent('character-recenter', {
+  init() {
+    this.spawned = false;
+    // a-scene自体のクリックを監視（Mind-ARの干渉を避けるため）
+    this.el.sceneEl.addEventListener('mousedown', (e) => {
+      // リセットボタンなどを押した時は無視
+      if (e.target.closest('#overlay')) return;
+
+      if (!this.spawned) {
+        const cameraEl = document.querySelector('#camera');
+        const rotation = cameraEl.getAttribute('rotation');
+        const angleY = rotation.y * (Math.PI / 180);
+
+        // 身長180cmからの視点を想定：5m先、3m下
+        const dist = 5.0; 
+        const x = -Math.sin(angleY) * dist;
+        const z = -Math.cos(angleY) * dist;
+        const y = -3.0; // 地面の高さ
+
+        this.el.object3D.position.set(x, y, z);
+        this.el.object3D.rotation.set(0, angleY + Math.PI, 0); 
+        this.el.setAttribute('visible', 'true');
+        this.spawned = true;
+        document.getElementById('instruction').innerText = "DRAG TO MOVE";
+        
+        console.log("Spawned at:", x, y, z);
+      }
+    });
+
+    document.getElementById('recenterBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.spawned = false;
+      this.el.setAttribute('visible', 'false');
+      document.getElementById('instruction').innerText = "LOOK DOWN & TAP";
+    });
+  }
+});
 
 AFRAME.registerComponent('character-move', {
   init() {
@@ -13,6 +54,7 @@ AFRAME.registerComponent('character-move', {
     this.active = false;
     this.startPos = { x: 0, y: 0 };
     this.currentPos = { x: 0, y: 0 };
+
     const overlay = document.getElementById('overlay');
     this.joystickParent = document.createElement('div');
     this.joystickParent.className = 'joystick-container';
@@ -29,15 +71,17 @@ AFRAME.registerComponent('character-move', {
       this.active = true;
       this.startPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       this.currentPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      this.joystickParent.classList.add('visible');
+      this.joystickParent.style.display = 'block';
     });
+
     window.addEventListener('touchmove', (e) => {
       if (!this.active) return;
       this.currentPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     });
+
     window.addEventListener('touchend', () => {
       this.active = false;
-      this.joystickParent.classList.remove('visible');
+      this.joystickParent.style.display = 'none';
       this.el.setAttribute('animation-mixer', {clip: 'IDLE', loop: 'repeat'});
     });
   },
@@ -61,44 +105,9 @@ AFRAME.registerComponent('character-move', {
       const speed = 0.005;
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
-      this.el.object3D.position.y = -3.0; // 地面の高さに固定
+      this.el.object3D.position.y = -3.0;
       this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
       this.el.setAttribute('animation-mixer', {clip: 'WALK', loop: 'repeat'});
     }
-  }
-});
-
-AFRAME.registerComponent('character-recenter', {
-  init() {
-    this.spawned = false;
-    const scene = this.el.sceneEl;
-
-    scene.addEventListener('click', (e) => {
-      if (e.target.closest('#overlay')) return;
-
-      if (!this.spawned) {
-        const cameraEl = document.querySelector('#camera');
-        const camRotY = cameraEl.getAttribute('rotation').y * (Math.PI / 180);
-
-        // 5m前方、3m下に召喚
-        const dist = 5.0; 
-        const x = -Math.sin(camRotY) * dist;
-        const z = -Math.cos(camRotY) * dist;
-        const y = -3.0; 
-
-        this.el.object3D.position.set(x, y, z);
-        this.el.object3D.rotation.set(0, camRotY + Math.PI, 0); 
-        this.el.setAttribute('visible', 'true');
-        this.spawned = true;
-        document.getElementById('instruction').innerText = "DRAG TO MOVE";
-      }
-    });
-
-    document.getElementById('recenterBtn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.spawned = false;
-      this.el.setAttribute('visible', 'false');
-      document.getElementById('instruction').innerText = "TAP TO SPAWN";
-    });
   }
 });

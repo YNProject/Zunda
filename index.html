@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Zunda AR - Restoration</title>
+  <title>Zunda AR - Absolute Fix</title>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
@@ -11,31 +11,30 @@
 </head>
 <body>
   <div id="overlay">
-    <img id="recenterBtn" src="assets/reset.svg">
+    <img id="recenterBtn" src="assets/reset.svg" style="pointer-events: auto;">
     <h3 id="instruction">TAP TO START</h3>
   </div>
 
   <a-scene 
     mindar-image="imageTargetSrc: ; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;" 
-    embedded
     color-space="sRGB" 
     renderer="colorManagement: true, physicallyCorrectLights: true"
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: true">
+    device-orientation-permission-ui="enabled: true"
+    cursor="rayOrigin: mouse"
+    raycaster="objects: .clickable">
 
     <a-assets>
       <a-asset-item id="zunda_model" src="assets/zunda.glb"></a-asset-item>
     </a-assets>
 
-    <a-camera id="camera" position="0 0 0" look-controls="magicWindowTrackingEnabled: true; touchEnabled: false;" near="0.05" far="10000">
-      <a-entity cursor="rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
-    </a-camera>
+    <a-camera id="camera" position="0 0 0" look-controls="magicWindowTrackingEnabled: true; touchEnabled: false;" near="0.1" far="10000"></a-camera>
 
     <a-plane id="dummy-floor" 
              rotation="-90 0 0" 
              position="0 -3.0 0" 
              width="1000" height="1000" 
-             material="color: #4CC3D9; opacity: 0.2; transparent: true; side: double" 
+             material="color: #4CC3D9; opacity: 0.3; transparent: true; side: double" 
              class="clickable">
     </a-plane>
 
