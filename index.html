@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZundaMove - Open Source AR</title>
+
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+
+  <link rel="stylesheet" href="main.css">
+  <script src="main.js"></script>
+</head>
+<body>
+
+  <div id="overlay">
+    <img id="recenterBtn" src="assets/reset.svg">
+    <h3>DRAG TO MOVE</h3>
+  </div>
+
+  <a-scene 
+    mindar-image="imageTargetSrc: ; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;" 
+    color-space="sRGB" 
+    renderer="colorManagement: true, physicallyCorrectLights" 
+    vr-mode-ui="enabled: false" 
+    device-orientation-permission-ui="enabled: false">
+
+    <a-assets>
+      <a-asset-item id="zunda_model" src="assets/zunda.glb"></a-asset-item>
+    </a-assets>
+
+    <a-camera id="camera" position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-entity id="character-anchor" position="0 -1 -3">
+      <a-entity
+        id="character"
+        character-move
+        character-recenter
+        gltf-model="#zunda_model"
+        animation-mixer="clip: Idle; loop: repeat"
+        scale="0.5 0.5 0.5"
+        shadow>
+      </a-entity>
+    </a-entity>
+
+    <a-light type="directional" intensity="0.9" position="1 4.3 2.5"></a-light>
+    <a-light type="ambient" intensity="0.5"></a-light>
+  </a-scene>
+</body>
+</html>
