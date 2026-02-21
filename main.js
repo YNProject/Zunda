@@ -1,18 +1,16 @@
-// 1. センサー許可と初期化
+// --- 1. iOSセンサー・カメラ開始許可 ---
 window.addEventListener('click', function requestAccess() {
-  // iOS センサー許可
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().catch(console.error);
   }
   
-  // 一度クリックしたら案内を変える
   const instr = document.getElementById('instruction');
   if(instr.innerText.includes("START")) {
-    instr.innerText = "TAP GROUND TO SPAWN";
+    instr.innerText = "LOOK DOWN & TAP GROUND";
   }
 }, { once: false });
 
-// 2. 移動ロジック
+// --- 2. キャラクター移動（ジョイスティック）ロジック ---
 AFRAME.registerComponent('character-move', {
   init() {
     this.camera = document.querySelector('#camera');
@@ -73,13 +71,16 @@ AFRAME.registerComponent('character-move', {
 
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
+      // 床の高さ(0)を維持
+      this.el.object3D.position.y = 0;
+
       this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
       this.el.setAttribute('animation-mixer', {clip: 'WALK', loop: 'repeat'});
     }
   }
 });
 
-// 3. スポーン & リセンター
+// --- 3. スポーン・リセンターロジック ---
 AFRAME.registerComponent('character-recenter', {
   init() {
     this.spawned = false;
@@ -88,21 +89,33 @@ AFRAME.registerComponent('character-recenter', {
 
     scene.addEventListener('click', (e) => {
       const intersection = e.detail.intersection;
-      // ボタン以外の場所をクリックした場合
+      
+      // 床がクリックされた場合のみ実行
       if (intersection && !this.spawned && e.target.id === 'dummy-floor') {
-        const point = intersection.point;
-        this.el.object3D.position.set(point.x, point.y, point.z);
+        const cameraEl = document.querySelector('#camera');
+        
+        // カメラの向き（Y軸回転）を取得
+        const camRotY = cameraEl.object3D.rotation.y;
+
+        // 【改善】タップ位置に関わらず、カメラの「2メートル前方」を計算する
+        // これにより「近すぎ」「上すぎ」を防ぎます
+        const spawnPosX = cameraEl.object3D.position.x - Math.sin(camRotY) * 2.0;
+        const spawnPosZ = cameraEl.object3D.position.z - Math.cos(camRotY) * 2.0;
+        const spawnPosY = 0; // 地面
+
+        this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
         this.el.setAttribute('visible', 'true');
         this.spawned = true;
         instruction.innerText = "DRAG TO MOVE";
       }
     });
 
+    // リセンターボタンでリセット
     document.getElementById('recenterBtn').addEventListener('click', (e) => {
       e.stopPropagation();
       this.spawned = false;
       this.el.setAttribute('visible', 'false');
-      instruction.innerText = "TAP GROUND TO SPAWN";
+      instruction.innerText = "LOOK DOWN & TAP GROUND";
     });
   }
 });

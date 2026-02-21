@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Zunda AR - Fixed</title>
+  <title>Zunda AR - Final</title>
 
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
@@ -15,7 +15,7 @@
 
   <div id="overlay">
     <img id="recenterBtn" src="assets/reset.svg">
-    <h3 id="instruction">TAP TO START (CAMERA & SENSOR)</h3>
+    <h3 id="instruction">TAP TO START (PERMISSION)</h3>
   </div>
 
   <a-scene 
@@ -35,6 +35,7 @@
 
     <a-plane id="dummy-floor" 
              rotation="-90 0 0" 
+             position="0 0 0" 
              width="500" height="500" 
              material="transparent: true; opacity: 0" 
              class="clickable">
