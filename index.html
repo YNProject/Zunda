@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Zunda AR - Absolute Fix</title>
+  <title>Zunda AR - Restored</title>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
@@ -17,17 +17,18 @@
 
   <a-scene 
     mindar-image="imageTargetSrc: ; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;" 
-    renderer="colorManagement: true, antialias: true"
+    color-space="sRGB" 
+    renderer="colorManagement: true, physicallyCorrectLights: true"
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: true"
-    cursor="rayOrigin: mouse"
-    raycaster="objects: .clickable">
+    device-orientation-permission-ui="enabled: true">
 
     <a-assets>
       <a-asset-item id="zunda_model" src="assets/zunda.glb"></a-asset-item>
     </a-assets>
 
-    <a-camera id="camera" position="0 0 0" look-controls="magicWindowTrackingEnabled: true; touchEnabled: false;" near="0.001" far="10000"></a-camera>
+    <a-camera id="camera" position="0 0 0" look-controls="magicWindowTrackingEnabled: true; touchEnabled: false;" near="0.01" far="10000">
+      <a-entity cursor="rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
+    </a-camera>
 
     <a-entity
       id="character"
@@ -45,7 +46,7 @@
       <a-circle 
         rotation="-90 0 0" 
         radius="0.4" 
-        color="black" 
+        color="#000" 
         material="transparent: true; opacity: 0.4">
       </a-circle>
     </a-entity>
