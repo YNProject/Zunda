@@ -1,13 +1,17 @@
-// 1. iOSセンサー許可
+// 1. iOSセンサー許可（カメラを動かすために必須）
 window.addEventListener('click', function requestAccess() {
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-    DeviceOrientationEvent.requestPermission().catch(console.error);
+    DeviceOrientationEvent.requestPermission().then(state => {
+      if(state === 'granted') {
+        document.getElementById('instruction').innerText = "TAP TO SPAWN";
+      }
+    }).catch(console.error);
+  } else {
+    const instr = document.getElementById('instruction');
+    if (instr && instr.innerText.includes("START")) { instr.innerText = "TAP TO SPAWN"; }
   }
-  const instr = document.getElementById('instruction');
-  if (instr && instr.innerText.includes("START")) { instr.innerText = "TAP TO SPAWN"; }
 }, { once: true });
 
-// 2. 移動ロジック (できていた時の書き方)
 AFRAME.registerComponent('character-move', {
   init() {
     this.camera = document.querySelector('#camera');
@@ -40,7 +44,6 @@ AFRAME.registerComponent('character-move', {
     });
   },
 
-  // ★重要：アニメが固まらないように、切り替え時だけsetAttributeする
   setAnim(name) {
     if (this.currentAnim !== name) {
       this.currentAnim = name;
@@ -57,7 +60,6 @@ AFRAME.registerComponent('character-move', {
     const distance = Math.sqrt(dx * dx + dy * dy);
     const angle = Math.atan2(dy, dx);
 
-    // ジョイスティックUI更新
     this.joyOrigin.style.left = `${this.startPos.x}px`;
     this.joyOrigin.style.top = `${this.startPos.y}px`;
     const clampedDist = Math.min(distance, 40);
@@ -65,19 +67,18 @@ AFRAME.registerComponent('character-move', {
     this.joyPos.style.top = `${this.startPos.y + Math.sin(angle) * clampedDist}px`;
 
     if (distance > 5) {
-      // --- 「できていた時」の計算式を再現 ---
-      const camRotation = this.camera.getAttribute('rotation');
-      const camYRad = camRotation.y * (Math.PI / 180); // 度をラジアンに
-      const moveAngle = angle - camYRad;
+      // カメラの向き（ラジアン）を取得
+      const camRot = this.camera.object3D.rotation.y;
+      const moveAngle = angle - camRot;
       const speed = 0.005;
 
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
-      this.el.object3D.position.y = -3.0; // 高さを固定
+      this.el.object3D.position.y = -3.0;
 
-      // 体の向き (進行方向を向くように調整)
-      this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
-      // ------------------------------------
+      // ★向きの修正：進行方向を向くように Math.PI（180度）の調整を変更
+      // 逆を向く場合は、ここの -Math.PI / 2 を +Math.PI / 2 に変えてみてください
+      this.el.object3D.rotation.y = -moveAngle - Math.PI / 2;
 
       this.setAnim('WALK');
     } else {
@@ -86,24 +87,22 @@ AFRAME.registerComponent('character-move', {
   }
 });
 
-// 3. スポーン & リセンター
 AFRAME.registerComponent('character-recenter', {
   init() {
     this.spawned = false;
     this.el.sceneEl.addEventListener('click', (e) => {
       if (e.target.closest('#overlay') || this.spawned) return;
 
-      const camRotation = document.querySelector('#camera').getAttribute('rotation');
-      const angleY = camRotation.y * (Math.PI / 180);
-
-      // 前方5m、地面3m下に配置
+      const camRot = document.querySelector('#camera').object3D.rotation.y;
       const dist = 5.0;
-      const x = -Math.sin(angleY) * dist;
-      const z = -Math.cos(angleY) * dist;
+      // カメラの正面座標を計算
+      const x = -Math.sin(camRot) * dist;
+      const z = -Math.cos(camRot) * dist;
       const y = -3.0;
 
       this.el.object3D.position.set(x, y, z);
-      this.el.object3D.rotation.set(0, angleY + Math.PI, 0); 
+      // キャラクターがこちらを向くように設定
+      this.el.object3D.rotation.set(0, camRot + Math.PI, 0); 
       this.el.setAttribute('visible', 'true');
       this.spawned = true;
       document.getElementById('instruction').innerText = "DRAG TO MOVE";

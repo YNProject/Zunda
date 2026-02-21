@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Zunda AR</title>
+  <title>Zunda AR Fixed</title>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
   <style>
@@ -18,7 +18,7 @@
 </head>
 <body>
   <div id="overlay">
-    <h3 id="instruction">TAP TO START</h3>
+    <h3 id="instruction">TAP TO START (Sensor Check)</h3>
     <div id="joystick-container">
       <div class="joystick origin"></div>
       <div class="joystick position"></div>
@@ -26,12 +26,14 @@
     <img id="recenterBtn" src="assets/reset.svg">
   </div>
 
-  <a-scene renderer="colorManagement: true">
+  <a-scene vr-mode-ui="enabled: false" renderer="colorManagement: true">
     <a-assets>
       <a-asset-item id="zunda_model" src="assets/zunda.glb"></a-asset-item>
     </a-assets>
 
-    <a-camera id="camera" look-controls="touchEnabled: false"></a-camera>
+    <a-entity id="camera-rig">
+      <a-camera id="camera" look-controls="magicWindowTrackingEnabled: true; touchEnabled: false" wasd-controls-enabled="false"></a-camera>
+    </a-entity>
 
     <a-entity id="character" character-move character-recenter visible="false">
       <a-entity id="zunda_body" gltf-model="#zunda_model" scale="0.5 0.5 0.5" rotation="0 180 0"></a-entity>
