@@ -96,14 +96,14 @@ AFRAME.registerComponent('character-move', {
 
     if (distance > 5) {
       const camY = this.camera.object3D.rotation.y;
-      const moveAngle = angle - camY; 
+      const moveAngle = angle - camY + Math.PI / 2; 
       const speed = 0.005;
       
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
       this.el.object3D.position.y = -3.0;
 
-      this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
+      this.el.object3D.rotation.y = -moveAngle + Math.PI;
       this.setAnimation("WALK");
     } else {
       this.setAnimation("IDLE");
