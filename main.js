@@ -95,7 +95,6 @@ AFRAME.registerComponent('character-move', {
     this.joystickPosition.style.top = `${this.startPos.y + Math.sin(angle) * Math.min(distance, 50)}px`;
 
     if (distance > 5) {
-      // 【完全復元】うまくいっていた頃の計算式に戻しました
       const camY = this.camera.object3D.rotation.y;
       const moveAngle = angle - camY; 
       const speed = 0.005;
@@ -104,9 +103,7 @@ AFRAME.registerComponent('character-move', {
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
       this.el.object3D.position.y = -3.0;
 
-      // 体の向きもうまくいっていた頃の計算に
       this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
-
       this.setAnimation("WALK");
     } else {
       this.setAnimation("IDLE");
