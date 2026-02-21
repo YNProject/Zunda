@@ -56,8 +56,9 @@
 </a-camera>
     <a-entity id="character" character-move character-recenter visible="false">
       <a-entity id="zunda_body" gltf-model="#zunda_model" scale="0.5 0.5 0.5" rotation="0 180 0"></a-entity>
-      <a-circle rotation="-90 0 0" radius="0.3" color="black" material="transparent: true; opacity: 0.4"></a-circle>
-    </a-entity>
+      <a-circle rotation="-90 0 0" radius="0.6" 
+          material="shader: radial-gradient; transparent: true; opacity: 0.5; color: #000;">
+</a-circle>    </a-entity>
   </a-scene>
 
   <script src="main.js"></script>
