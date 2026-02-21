@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Zunda AR - Independent</title>
+  <title>Zunda AR - Fixed</title>
 
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
 
   <link rel="stylesheet" href="main.css">
@@ -14,13 +15,15 @@
 
   <div id="overlay">
     <img id="recenterBtn" src="assets/reset.svg">
-    <h3 id="instruction">TAP TO START (PERMISSION)</h3>
+    <h3 id="instruction">TAP TO START (CAMERA & SENSOR)</h3>
   </div>
 
   <a-scene 
-    device-orientation-permission-ui="enabled: true"
+    mindar-image="imageTargetSrc: ; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;" 
+    color-space="sRGB" 
     renderer="colorManagement: true, physicallyCorrectLights: true"
     vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: true"
     raycaster="objects: .clickable"
     cursor="rayOrigin: mouse">
 

@@ -1,17 +1,16 @@
-// 1. iOSセンサー許可と初期化
-window.addEventListener('click', function requestInventory() {
+// 1. センサー許可と初期化
+window.addEventListener('click', function requestAccess() {
+  // iOS センサー許可
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-    DeviceOrientationEvent.requestPermission()
-      .then(response => {
-        if (response === 'granted') {
-          document.getElementById('instruction').innerText = "TAP GROUND TO SPAWN";
-        }
-      })
-      .catch(console.error);
-  } else {
-    document.getElementById('instruction').innerText = "TAP GROUND TO SPAWN";
+    DeviceOrientationEvent.requestPermission().catch(console.error);
   }
-}, { once: true });
+  
+  // 一度クリックしたら案内を変える
+  const instr = document.getElementById('instruction');
+  if(instr.innerText.includes("START")) {
+    instr.innerText = "TAP GROUND TO SPAWN";
+  }
+}, { once: false });
 
 // 2. 移動ロジック
 AFRAME.registerComponent('character-move', {
@@ -21,7 +20,6 @@ AFRAME.registerComponent('character-move', {
     this.startPos = { x: 0, y: 0 };
     this.currentPos = { x: 0, y: 0 };
 
-    // ジョイスティックUI生成
     const overlay = document.getElementById('overlay');
     this.joystickParent = document.createElement('div');
     this.joystickParent.className = 'joystick-container';
@@ -69,17 +67,13 @@ AFRAME.registerComponent('character-move', {
     this.joystickPosition.style.top = `${this.startPos.y + Math.sin(angle) * clampedDist}px`;
 
     if (distance > 5) {
-      // カメラの向きに基づいた移動計算
-      const camRotation = this.camera.object3D.rotation;
-      const moveAngle = angle - camRotation.y;
+      const camY = this.camera.object3D.rotation.y;
+      const moveAngle = angle - camY;
       const speed = 0.005;
 
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
-      
-      // キャラクターの向きを進行方向に合わせる（後ろ向き修正済）
       this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
-
       this.el.setAttribute('animation-mixer', {clip: 'WALK', loop: 'repeat'});
     }
   }
@@ -94,7 +88,8 @@ AFRAME.registerComponent('character-recenter', {
 
     scene.addEventListener('click', (e) => {
       const intersection = e.detail.intersection;
-      if (intersection && !this.spawned) {
+      // ボタン以外の場所をクリックした場合
+      if (intersection && !this.spawned && e.target.id === 'dummy-floor') {
         const point = intersection.point;
         this.el.object3D.position.set(point.x, point.y, point.z);
         this.el.setAttribute('visible', 'true');
