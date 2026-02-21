@@ -61,7 +61,7 @@ AFRAME.registerComponent('character-move', {
       const speed = 0.005;
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
-      this.el.object3D.position.y = 0; // 地面に固定
+      this.el.object3D.position.y = -1.5; // 地面に固定
       this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
       this.el.setAttribute('animation-mixer', {clip: 'WALK', loop: 'repeat'});
     }
