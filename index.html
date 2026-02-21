@@ -3,21 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Zunda AR</title>
+  <title>Zunda AR Final</title>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
   <style>
-    body { margin: 0; overflow: hidden; }
+    body { margin: 0; overflow: hidden; font-family: sans-serif; }
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
-    #instruction { position: absolute; top: 20px; width: 100%; text-align: center; color: white; text-shadow: 1px 1px 2px black; font-family: sans-serif; }
+    #instruction { position: absolute; top: 20px; width: 100%; text-align: center; color: white; text-shadow: 1px 1px 2px black; }
+    
+    /* リセットボタンのスタイル */
+    #recenterBtn { 
+      position: absolute; 
+      bottom: 20px; 
+      right: 20px; 
+      width: 60px; 
+      height: 60px; 
+      pointer-events: auto; /* ボタンはクリック可能に */
+      z-index: 20;
+    }
+
     #joystick-container { position: fixed; display: none; width: 100px; height: 100px; z-index: 20; pointer-events: none; }
     .joystick.origin { position: absolute; width: 80px; height: 80px; border: 2px solid white; border-radius: 50%; background: rgba(255,255,255,0.2); transform: translate(-50%, -50%); }
     .joystick.position { position: absolute; width: 40px; height: 40px; background: white; border-radius: 50%; transform: translate(-50%, -50%); }
-    #recenterBtn { position: absolute; bottom: 20px; right: 20px; width: 60px; height: 60px; pointer-events: auto; background: white; border-radius: 50%; padding: 10px; }
-    
-    /* A-Frameの右下ボタンをCSSでも念のため隠す */
-    .a-enter-vr { display: none !important; }
+
+    /* A-Frameが勝手に出すボタンをCSSで強制削除 */
+    .a-enter-vr, .a-enter-ar { display: none !important; }
   </style>
 </head>
 <body>
@@ -27,13 +38,12 @@
       <div class="joystick origin"></div>
       <div class="joystick position"></div>
     </div>
-    <img id="recenterBtn" src="assets/reset.svg">
+    <img id="recenterBtn" src="assets/reset.svg" alt="Reset">
   </div>
 
   <a-scene mindar-image="imageTargetSrc: ; autoStart: true; uiLoading: no; uiScanning: no;" 
            vr-mode-ui="enabled: false" 
-           device-orientation-permission-ui="enabled: false"
-           renderer="colorManagement: true, antialias: true">
+           renderer="colorManagement: true">
     
     <a-assets>
       <a-asset-item id="zunda_model" src="assets/zunda.glb"></a-asset-item>
@@ -45,9 +55,6 @@
       <a-entity id="zunda_body" gltf-model="#zunda_model" scale="0.5 0.5 0.5" rotation="0 180 0"></a-entity>
       <a-circle rotation="-90 0 0" radius="0.3" color="black" material="transparent: true; opacity: 0.4"></a-circle>
     </a-entity>
-
-    <a-light type="directional" intensity="1" position="1 3 2"></a-light>
-    <a-light type="ambient" intensity="0.5"></a-light>
   </a-scene>
 
   <script src="main.js"></script>
