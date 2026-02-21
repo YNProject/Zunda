@@ -49,8 +49,11 @@
       <a-asset-item id="zunda_model" src="assets/zunda.glb"></a-asset-item>
     </a-assets>
 
-    <a-camera id="camera" look-controls="enabled: true; touchEnabled: false"></a-camera>
-
+<a-camera id="camera" 
+          look-controls="enabled: true; touchEnabled: false" 
+          wasd-controls-enabled="false"
+          near="0.01">
+</a-camera>
     <a-entity id="character" character-move character-recenter visible="false">
       <a-entity id="zunda_body" gltf-model="#zunda_model" scale="0.5 0.5 0.5" rotation="0 180 0"></a-entity>
       <a-circle rotation="-90 0 0" radius="0.3" color="black" material="transparent: true; opacity: 0.4"></a-circle>
