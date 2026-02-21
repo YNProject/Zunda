@@ -95,15 +95,18 @@ AFRAME.registerComponent('character-move', {
     this.joystickPosition.style.top = `${this.startPos.y + Math.sin(angle) * Math.min(distance, 50)}px`;
 
     if (distance > 5) {
+      // 一番最初の、スムーズに動いていた計算に戻しました
       const camY = this.camera.object3D.rotation.y;
-      const moveAngle = angle - camY + Math.PI / 2; 
+      const moveAngle = angle - camY; 
       const speed = 0.005;
       
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
       this.el.object3D.position.y = -3.0;
 
-      this.el.object3D.rotation.y = -moveAngle + Math.PI;
+      // 体の向き：以前の「あべこべじゃない時」の設定
+      this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
+
       this.setAnimation("WALK");
     } else {
       this.setAnimation("IDLE");
