@@ -1,4 +1,3 @@
-// iOSセンサー許可
 window.addEventListener('click', function requestAccess() {
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().catch(console.error);
@@ -61,7 +60,9 @@ AFRAME.registerComponent('character-move', {
       const speed = 0.005;
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
-      this.el.object3D.position.y = -1.5; // 地面に固定
+      
+      this.el.object3D.position.y = -3.0; // 高さを固定
+
       this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
       this.el.setAttribute('animation-mixer', {clip: 'WALK', loop: 'repeat'});
     }
@@ -77,18 +78,14 @@ AFRAME.registerComponent('character-recenter', {
     scene.addEventListener('click', (e) => {
       if (!this.spawned) {
         const cameraEl = document.querySelector('#camera');
-        
-        // カメラの向き（Y軸回転）
         const camRotY = cameraEl.object3D.rotation.y;
         
-        // 【重要】カメラの座標はそのままに、前方3メートルの「地面(Y=0)」を算出
-        // distanceを3mにすることで、垂直に持っても「足元」に見えるようにします
+        // 【修正】5メートル前方に配置。これでしっかり視界に入ります
         const distance = 5.0; 
-        const spawnPosX = cameraEl.object3D.position.x - Math.sin(camRotY) * distance;
-        const spawnPosZ = cameraEl.object3D.position.z - Math.cos(camRotY) * distance;
+        const spawnPosX = -Math.sin(camRotY) * distance;
+        const spawnPosZ = -Math.cos(camRotY) * distance;
         
-        // どんな時も高さは絶対 0
-        const spawnPosY = -1.5; 
+        const spawnPosY = -3.0; 
 
         this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
         this.el.object3D.rotation.y = camRotY + Math.PI; 
