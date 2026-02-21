@@ -1,3 +1,4 @@
+// iOSセンサー許可
 window.addEventListener('click', function requestAccess() {
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().catch(console.error);
@@ -10,7 +11,7 @@ AFRAME.registerComponent('character-move', {
   init() {
     this.camera = document.querySelector('#camera');
     this.active = false;
-    this.currentAnim = "IDLE";
+    this.currentAnim = "IDLE"; // アニメ連打防止用
     this.startPos = { x: 0, y: 0 };
     this.currentPos = { x: 0, y: 0 };
     const overlay = document.getElementById('overlay');
@@ -42,10 +43,12 @@ AFRAME.registerComponent('character-move', {
     });
   },
 
+  // アニメーションが1コマ目で止まらないようにする
   setAnimation(animName) {
     if (this.currentAnim !== animName) {
       this.currentAnim = animName;
-      const model = document.querySelector('#zunda_body') || this.el;
+      // gltf-modelがついている要素（本体）を特定
+      const model = this.el.querySelector('[gltf-model]') || this.el;
       model.setAttribute('animation-mixer', {clip: animName, loop: 'repeat'});
     }
   },
@@ -66,14 +69,15 @@ AFRAME.registerComponent('character-move', {
 
     if (distance > 5) {
       const camY = this.camera.object3D.rotation.y;
-      const moveAngle = angle - camY; 
+      const moveAngle = angle - camY;
       const speed = 0.005;
       
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
-      this.el.object3D.position.y = -3.0;
+      this.el.object3D.position.y = -1.5; 
 
-      // 【ここを修正しました】
+      // 【修正箇所】体の向き
+      // 移動方向に対して正面を向くように回転を調整
       this.el.object3D.rotation.y = -moveAngle - Math.PI / 2;
       
       this.setAnimation('WALK');
@@ -94,10 +98,11 @@ AFRAME.registerComponent('character-recenter', {
       if (!this.spawned) {
         const cameraEl = document.querySelector('#camera');
         const camRotY = cameraEl.object3D.rotation.y;
-        const distance = 5.0;
+        
+        const distance = 3.0; 
         const spawnPosX = cameraEl.object3D.position.x - Math.sin(camRotY) * distance;
         const spawnPosZ = cameraEl.object3D.position.z - Math.cos(camRotY) * distance;
-        const spawnPosY = -3.0;
+        const spawnPosY = -1.5; // 移動時の高さと合わせる
 
         this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
         this.el.object3D.rotation.y = camRotY + Math.PI; 
