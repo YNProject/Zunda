@@ -1,4 +1,3 @@
-// A-Frame コンポーネント
 AFRAME.registerComponent('character-move', {
   init() {
     this.camera = document.querySelector('#camera');
@@ -6,7 +5,7 @@ AFRAME.registerComponent('character-move', {
     this.startPos = { x: 0, y: 0 };
     this.currentPos = { x: 0, y: 0 };
 
-    // ジョイスティックUI
+    // ジョイスティックUI生成
     const overlay = document.getElementById('overlay');
     this.joystickParent = document.createElement('div');
     this.joystickParent.className = 'joystick-container';
@@ -19,6 +18,7 @@ AFRAME.registerComponent('character-move', {
     overlay.appendChild(this.joystickParent);
 
     window.addEventListener('touchstart', (e) => {
+      if (this.el.getAttribute('visible') === false) return;
       this.active = true;
       this.startPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       this.currentPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -33,7 +33,6 @@ AFRAME.registerComponent('character-move', {
     window.addEventListener('touchend', () => {
       this.active = false;
       this.joystickParent.classList.remove('visible');
-      // IDLEアニメーションに戻す (大文字固定)
       this.el.setAttribute('animation-mixer', {clip: 'IDLE', loop: 'repeat'});
     });
   },
@@ -48,7 +47,6 @@ AFRAME.registerComponent('character-move', {
     const clampedDist = Math.min(distance, maxRadius);
     const angle = Math.atan2(dy, dx);
 
-    // UI更新
     this.joystickOrigin.style.left = `${this.startPos.x}px`;
     this.joystickOrigin.style.top = `${this.startPos.y}px`;
     this.joystickPosition.style.left = `${this.startPos.x + Math.cos(angle) * clampedDist}px`;
@@ -59,15 +57,11 @@ AFRAME.registerComponent('character-move', {
       const moveAngle = angle - camY;
       const speed = 0.005;
 
-      // 移動
+      // XとZのみ更新（Yは固定で平面移動）
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
       
-      // 【修正ポイント】回転方向の反転
-      // もしこれでも逆なら、 + Math.PI / 2 を - Math.PI / 2 に変えてみてください
       this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
-
-      // WALKアニメーション
       this.el.setAttribute('animation-mixer', {clip: 'WALK', loop: 'repeat'});
     }
   }
@@ -75,11 +69,30 @@ AFRAME.registerComponent('character-move', {
 
 AFRAME.registerComponent('character-recenter', {
   init() {
-    const btn = document.getElementById('recenterBtn');
-    btn.addEventListener('click', () => {
-      this.el.object3D.position.set(0, 0, -3); // カメラの少し前に戻す
-      btn.style.transform = 'scale(0.8)';
-      setTimeout(() => btn.style.transform = 'scale(1)', 100);
+    this.spawned = false;
+    const scene = this.el.sceneEl;
+    const instruction = document.getElementById('instruction');
+
+    // シーン上のクリック（床へのヒットテスト）
+    scene.addEventListener('click', (e) => {
+      // レイキャスターが床に当たった座標を取得
+      const intersection = e.detail.intersection;
+      if (intersection && !this.spawned) {
+        const point = intersection.point;
+        // タップした座標に配置
+        this.el.object3D.position.set(point.x, point.y, point.z);
+        this.el.setAttribute('visible', 'true');
+        this.spawned = true;
+        instruction.innerText = "DRAG TO MOVE";
+      }
+    });
+
+    // リセンターボタン
+    document.getElementById('recenterBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.spawned = false;
+      this.el.setAttribute('visible', 'false');
+      instruction.innerText = "TAP TO SPAWN";
     });
   }
 });

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZundaMove - Open Source AR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ZundaMove - WebAR</title>
 
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
@@ -16,32 +16,38 @@
 
   <div id="overlay">
     <img id="recenterBtn" src="assets/reset.svg">
-    <h3>DRAG TO MOVE</h3>
+    <h3 id="instruction">TAP TO SPAWN</h3>
   </div>
 
   <a-scene 
     mindar-image="imageTargetSrc: ; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;" 
     color-space="sRGB" 
     renderer="colorManagement: true, physicallyCorrectLights" 
-    vr-mode-ui="enabled: false" 
-    device-orientation-permission-ui="enabled: false">
+    vr-mode-ui="enabled: false"
+    raycaster="objects: .clickable"
+    cursor="rayOrigin: mouse">
 
     <a-assets>
       <a-asset-item id="zunda_model" src="assets/zunda.glb"></a-asset-item>
     </a-assets>
 
-    <a-camera id="camera" position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-camera id="camera" position="0 1.6 0" look-controls="enabled: false"></a-camera>
 
-    <a-entity id="character-anchor" position="0 -1 -3">
-      <a-entity
-        id="character"
-        character-move
-        character-recenter
-        gltf-model="#zunda_model"
-        animation-mixer="clip: Idle; loop: repeat"
-        scale="0.5 0.5 0.5"
-        shadow>
-      </a-entity>
+    <a-plane id="dummy-floor" 
+             rotation="-90 0 0" 
+             width="200" height="200" 
+             material="transparent: true; opacity: 0" 
+             class="clickable">
+    </a-plane>
+
+    <a-entity
+      id="character"
+      character-move
+      character-recenter
+      gltf-model="#zunda_model"
+      visible="false"
+      scale="0.5 0.5 0.5"
+      shadow>
     </a-entity>
 
     <a-light type="directional" intensity="0.9" position="1 4.3 2.5"></a-light>
