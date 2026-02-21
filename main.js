@@ -11,7 +11,7 @@ AFRAME.registerComponent('character-move', {
   init() {
     this.camera = document.querySelector('#camera');
     this.active = false;
-    this.currentAnim = "IDLE"; // アニメ連打防止用
+    this.currentAnim = "IDLE"; // 現在のアニメーション状態を保存
     this.startPos = { x: 0, y: 0 };
     this.currentPos = { x: 0, y: 0 };
     const overlay = document.getElementById('overlay');
@@ -39,17 +39,16 @@ AFRAME.registerComponent('character-move', {
     window.addEventListener('touchend', () => {
       this.active = false;
       this.joystickParent.classList.remove('visible');
-      this.setAnimation('IDLE');
+      this.setAnimation('IDLE'); // 待機アニメーションへ
     });
   },
 
-  // アニメーションが1コマ目で止まらないようにする
+  // ★アニメーションが固まらないように制御する関数
   setAnimation(animName) {
     if (this.currentAnim !== animName) {
       this.currentAnim = animName;
-      // gltf-modelがついている要素（本体）を特定
-      const model = this.el.querySelector('[gltf-model]') || this.el;
-      model.setAttribute('animation-mixer', {clip: animName, loop: 'repeat'});
+      // 本体（または子要素のモデル）に対して一度だけ属性をセット
+      this.el.setAttribute('animation-mixer', {clip: animName, loop: 'repeat'});
     }
   },
 
@@ -68,6 +67,7 @@ AFRAME.registerComponent('character-move', {
     this.joystickPosition.style.top = `${this.startPos.y + Math.sin(angle) * clampedDist}px`;
 
     if (distance > 5) {
+      // --- 参考コードのロジックを完全再現 ---
       const camY = this.camera.object3D.rotation.y;
       const moveAngle = angle - camY;
       const speed = 0.005;
@@ -76,11 +76,10 @@ AFRAME.registerComponent('character-move', {
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
       this.el.object3D.position.y = -1.5; 
 
-      // 【修正箇所】体の向き
-      // 移動方向に対して正面を向くように回転を調整
-      this.el.object3D.rotation.y = -moveAngle - Math.PI / 2;
-      
-      this.setAnimation('WALK');
+      this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
+      // ------------------------------------
+
+      this.setAnimation('WALK'); // 歩行アニメーションへ
     } else {
       this.setAnimation('IDLE');
     }
@@ -102,7 +101,9 @@ AFRAME.registerComponent('character-recenter', {
         const distance = 3.0; 
         const spawnPosX = cameraEl.object3D.position.x - Math.sin(camRotY) * distance;
         const spawnPosZ = cameraEl.object3D.position.z - Math.cos(camRotY) * distance;
-        const spawnPosY = -1.5; // 移動時の高さと合わせる
+        
+        // 高さを移動時と合わせる
+        const spawnPosY = -1.5; 
 
         this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
         this.el.object3D.rotation.y = camRotY + Math.PI; 
