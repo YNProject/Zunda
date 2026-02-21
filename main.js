@@ -90,7 +90,7 @@ AFRAME.registerComponent('character-move', {
     const dx = this.currentPos.x - this.startPos.x;
     const dy = this.currentPos.y - this.startPos.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    const angle = Math.atan2(dy, dx);
+    const angle = Math.atan2(dy, dx); // スティックが指す画面上の角度
 
     this.joystickOrigin.style.left = `${this.startPos.x}px`;
     this.joystickOrigin.style.top = `${this.startPos.y}px`;
@@ -98,15 +98,24 @@ AFRAME.registerComponent('character-move', {
     this.joystickPosition.style.top = `${this.startPos.y + Math.sin(angle) * Math.min(distance, 50)}px`;
 
     if (distance > 5) {
+      // カメラの向き（Y軸回転）を取得
       const camY = this.camera.object3D.rotation.y;
-      const moveAngle = angle - camY;
+      
+      // 【修正ポイント】移動方向の計算
+      // 逆方向に動く場合は、ここの符号 (+ / -) を調整します
+      const moveAngle = angle + camY + Math.PI / 2;
+      
       const speed = 0.005;
       
+      // 座標の更新
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
-      this.el.object3D.position.y = -3.0; // 地面に固定
+      this.el.object3D.position.y = -3.0; 
 
-      this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
+      // 【修正ポイント】体の向き
+      // 進んでいる方向を向くように調整
+      this.el.object3D.rotation.y = -moveAngle + Math.PI;
+      
       this.el.setAttribute('animation-mixer', {clip: 'WALK', loop: 'repeat'});
     }
   }
