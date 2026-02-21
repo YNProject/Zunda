@@ -1,23 +1,18 @@
-// --- 1. iOSセンサー・カメラ開始許可 ---
+// iOSセンサー許可
 window.addEventListener('click', function requestAccess() {
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().catch(console.error);
   }
-  
   const instr = document.getElementById('instruction');
-  if(instr.innerText.includes("START")) {
-    instr.innerText = "LOOK DOWN & TAP GROUND";
-  }
+  if(instr.innerText.includes("START")) { instr.innerText = "TAP TO SPAWN"; }
 }, { once: false });
 
-// --- 2. キャラクター移動（ジョイスティック）ロジック ---
 AFRAME.registerComponent('character-move', {
   init() {
     this.camera = document.querySelector('#camera');
     this.active = false;
     this.startPos = { x: 0, y: 0 };
     this.currentPos = { x: 0, y: 0 };
-
     const overlay = document.getElementById('overlay');
     this.joystickParent = document.createElement('div');
     this.joystickParent.className = 'joystick-container';
@@ -36,22 +31,18 @@ AFRAME.registerComponent('character-move', {
       this.currentPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       this.joystickParent.classList.add('visible');
     });
-
     window.addEventListener('touchmove', (e) => {
       if (!this.active) return;
       this.currentPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     });
-
     window.addEventListener('touchend', () => {
       this.active = false;
       this.joystickParent.classList.remove('visible');
       this.el.setAttribute('animation-mixer', {clip: 'IDLE', loop: 'repeat'});
     });
   },
-
   tick(time, timeDelta) {
     if (!this.active) return;
-
     const dx = this.currentPos.x - this.startPos.x;
     const dy = this.currentPos.y - this.startPos.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
@@ -68,69 +59,50 @@ AFRAME.registerComponent('character-move', {
       const camY = this.camera.object3D.rotation.y;
       const moveAngle = angle - camY;
       const speed = 0.005;
-
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
-      // 床の高さ(0)を維持
-      this.el.object3D.position.y = 0;
-
+      this.el.object3D.position.y = 0; // 地面に固定
       this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
       this.el.setAttribute('animation-mixer', {clip: 'WALK', loop: 'repeat'});
     }
   }
 });
 
-// --- 3. スポーン・リセンターロジック ---
 AFRAME.registerComponent('character-recenter', {
   init() {
     this.spawned = false;
     const scene = this.el.sceneEl;
     const instruction = document.getElementById('instruction');
 
-// スポーンロジック部分の書き換え
-scene.addEventListener('click', (e) => {
-  const intersection = e.detail.intersection;
-  const instruction = document.getElementById('instruction');
+    scene.addEventListener('click', (e) => {
+      if (!this.spawned) {
+        const cameraEl = document.querySelector('#camera');
+        
+        // カメラの向き（Y軸回転）
+        const camRotY = cameraEl.object3D.rotation.y;
+        
+        // 【重要】カメラの座標はそのままに、前方3メートルの「地面(Y=0)」を算出
+        // distanceを3mにすることで、垂直に持っても「足元」に見えるようにします
+        const distance = 3.0; 
+        const spawnPosX = cameraEl.object3D.position.x - Math.sin(camRotY) * distance;
+        const spawnPosZ = cameraEl.object3D.position.z - Math.cos(camRotY) * distance;
+        
+        // どんな時も高さは絶対 0
+        const spawnPosY = 0; 
 
-  // 床（dummy-floor）が判定された、もしくは未出現の場合
-  if (!this.spawned) {
-    const cameraEl = document.querySelector('#camera');
-    
-    // 現在のカメラの向き（水平回転）を取得
-    const camRotY = cameraEl.object3D.rotation.y;
+        this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
+        this.el.object3D.rotation.y = camRotY + Math.PI; 
+        this.el.setAttribute('visible', 'true');
+        this.spawned = true;
+        instruction.innerText = "DRAG TO MOVE";
+      }
+    });
 
-    // カメラの現在位置
-    const camPos = cameraEl.object3D.position;
-
-    // 【計算】カメラの向きに合わせて2.5m前方の座標を算出
-    const distance = 2.5; 
-    const spawnPosX = camPos.x - Math.sin(camRotY) * distance;
-    const spawnPosZ = camPos.z - Math.cos(camRotY) * distance;
-    
-    // 【最重要】Y座標を「0」に強制固定。これで空中浮遊を物理的に防ぐ
-    const spawnPosY = 0; 
-
-    // キャラクターの位置を更新
-    this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
-    
-    // キャラクターをカメラの方に向ける
-    this.el.object3D.rotation.y = camRotY + Math.PI; 
-
-    // 表示
-    this.el.setAttribute('visible', 'true');
-    this.spawned = true;
-    instruction.innerText = "DRAG TO MOVE";
-    
-    console.log("Spawned at:", spawnPosX, spawnPosY, spawnPosZ);
-  }
-});
-
-    // リセンターボタンでリセット
     document.getElementById('recenterBtn').addEventListener('click', (e) => {
       e.stopPropagation();
       this.spawned = false;
       this.el.setAttribute('visible', 'false');
-      instruction.innerText = "LOOK DOWN & TAP GROUND";
+      instruction.innerText = "TAP TO SPAWN";
     });
   }
 });
