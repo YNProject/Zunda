@@ -1,3 +1,19 @@
+// 1. iOSセンサー許可と初期化
+window.addEventListener('click', function requestInventory() {
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission()
+      .then(response => {
+        if (response === 'granted') {
+          document.getElementById('instruction').innerText = "TAP GROUND TO SPAWN";
+        }
+      })
+      .catch(console.error);
+  } else {
+    document.getElementById('instruction').innerText = "TAP GROUND TO SPAWN";
+  }
+}, { once: true });
+
+// 2. 移動ロジック
 AFRAME.registerComponent('character-move', {
   init() {
     this.camera = document.querySelector('#camera');
@@ -18,7 +34,7 @@ AFRAME.registerComponent('character-move', {
     overlay.appendChild(this.joystickParent);
 
     window.addEventListener('touchstart', (e) => {
-      if (this.el.getAttribute('visible') === false) return;
+      if (!this.el.getAttribute('visible')) return;
       this.active = true;
       this.startPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       this.currentPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -43,7 +59,7 @@ AFRAME.registerComponent('character-move', {
     const dx = this.currentPos.x - this.startPos.x;
     const dy = this.currentPos.y - this.startPos.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    const maxRadius = 50; 
+    const maxRadius = 50;
     const clampedDist = Math.min(distance, maxRadius);
     const angle = Math.atan2(dy, dx);
 
@@ -53,33 +69,33 @@ AFRAME.registerComponent('character-move', {
     this.joystickPosition.style.top = `${this.startPos.y + Math.sin(angle) * clampedDist}px`;
 
     if (distance > 5) {
-      const camY = this.camera.object3D.rotation.y;
-      const moveAngle = angle - camY;
+      // カメラの向きに基づいた移動計算
+      const camRotation = this.camera.object3D.rotation;
+      const moveAngle = angle - camRotation.y;
       const speed = 0.005;
 
-      // XとZのみ更新（Yは固定で平面移動）
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
       
+      // キャラクターの向きを進行方向に合わせる（後ろ向き修正済）
       this.el.object3D.rotation.y = -moveAngle + Math.PI / 2;
+
       this.el.setAttribute('animation-mixer', {clip: 'WALK', loop: 'repeat'});
     }
   }
 });
 
+// 3. スポーン & リセンター
 AFRAME.registerComponent('character-recenter', {
   init() {
     this.spawned = false;
     const scene = this.el.sceneEl;
     const instruction = document.getElementById('instruction');
 
-    // シーン上のクリック（床へのヒットテスト）
     scene.addEventListener('click', (e) => {
-      // レイキャスターが床に当たった座標を取得
       const intersection = e.detail.intersection;
       if (intersection && !this.spawned) {
         const point = intersection.point;
-        // タップした座標に配置
         this.el.object3D.position.set(point.x, point.y, point.z);
         this.el.setAttribute('visible', 'true');
         this.spawned = true;
@@ -87,12 +103,11 @@ AFRAME.registerComponent('character-recenter', {
       }
     });
 
-    // リセンターボタン
     document.getElementById('recenterBtn').addEventListener('click', (e) => {
       e.stopPropagation();
       this.spawned = false;
       this.el.setAttribute('visible', 'false');
-      instruction.innerText = "TAP TO SPAWN";
+      instruction.innerText = "TAP GROUND TO SPAWN";
     });
   }
 });
