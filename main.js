@@ -83,12 +83,12 @@ AFRAME.registerComponent('character-recenter', {
         
         // 【重要】カメラの座標はそのままに、前方3メートルの「地面(Y=0)」を算出
         // distanceを3mにすることで、垂直に持っても「足元」に見えるようにします
-        const distance = 3.0; 
+        const distance = 5.0; 
         const spawnPosX = cameraEl.object3D.position.x - Math.sin(camRotY) * distance;
         const spawnPosZ = cameraEl.object3D.position.z - Math.cos(camRotY) * distance;
         
         // どんな時も高さは絶対 0
-        const spawnPosY = 0; 
+        const spawnPosY = -1.5; 
 
         this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
         this.el.object3D.rotation.y = camRotY + Math.PI; 
