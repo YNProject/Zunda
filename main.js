@@ -87,33 +87,41 @@ AFRAME.registerComponent('character-recenter', {
     const scene = this.el.sceneEl;
     const instruction = document.getElementById('instruction');
 
+// スポーンロジック部分の書き換え
 scene.addEventListener('click', (e) => {
   const intersection = e.detail.intersection;
   const instruction = document.getElementById('instruction');
 
-  if (intersection && !this.spawned && e.target.id === 'dummy-floor') {
+  // 床（dummy-floor）が判定された、もしくは未出現の場合
+  if (!this.spawned) {
     const cameraEl = document.querySelector('#camera');
     
-    // カメラの向き（Y軸回転）を取得
+    // 現在のカメラの向き（水平回転）を取得
     const camRotY = cameraEl.object3D.rotation.y;
 
-    // 【重要】カメラの座標に関わらず、地面(Y=0)に配置する
-    // 距離を2.5メートルに少し伸ばして、視界に入りやすくします
+    // カメラの現在位置
+    const camPos = cameraEl.object3D.position;
+
+    // 【計算】カメラの向きに合わせて2.5m前方の座標を算出
     const distance = 2.5; 
-    const spawnPosX = cameraEl.object3D.position.x - Math.sin(camRotY) * distance;
-    const spawnPosZ = cameraEl.object3D.position.z - Math.cos(camRotY) * distance;
+    const spawnPosX = camPos.x - Math.sin(camRotY) * distance;
+    const spawnPosZ = camPos.z - Math.cos(camRotY) * distance;
     
-    // Y座標を 0 に固定（空中浮遊を防止）
+    // 【最重要】Y座標を「0」に強制固定。これで空中浮遊を物理的に防ぐ
     const spawnPosY = 0; 
 
+    // キャラクターの位置を更新
     this.el.object3D.position.set(spawnPosX, spawnPosY, spawnPosZ);
     
-    // キャラクターの向きをカメラの方へ向ける
+    // キャラクターをカメラの方に向ける
     this.el.object3D.rotation.y = camRotY + Math.PI; 
 
+    // 表示
     this.el.setAttribute('visible', 'true');
     this.spawned = true;
     instruction.innerText = "DRAG TO MOVE";
+    
+    console.log("Spawned at:", spawnPosX, spawnPosY, spawnPosZ);
   }
 });
 
