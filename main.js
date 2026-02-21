@@ -49,11 +49,10 @@ AFRAME.registerComponent('character-move', {
   init() {
     this.camera = document.querySelector('#camera');
     this.active = false;
-    this.currentAnim = "IDLE"; 
+    this.currentAnim = "IDLE"; // アニメ状態を保存する変数
     this.startPos = { x: 0, y: 0 };
     this.currentPos = { x: 0, y: 0 };
     
-    // ジョイスティック生成
     const overlay = document.getElementById('overlay');
     this.joystickParent = document.createElement('div');
     this.joystickParent.className = 'joystick-container';
@@ -81,16 +80,16 @@ AFRAME.registerComponent('character-move', {
     window.addEventListener('touchend', () => {
       this.active = false;
       this.joystickParent.style.display = 'none';
-      this.setAnimation("IDLE");
+      this.setAnimation("IDLE"); // 指を離したら待機ポーズ
     });
   },
 
-  // アニメーションの重複命令を防止する関数
+  // アニメーションが重複してリセットされないようにする関数
   setAnimation(animName) {
     if (this.currentAnim !== animName) {
       this.currentAnim = animName;
-      // 子要素のa-entity（モデル本体）に対してアニメーションを設定
-      const model = this.el.querySelector('[gltf-model]');
+      // モデル本体（gltf-modelが付いている要素）を探してセット
+      const model = this.el.querySelector('[gltf-model]') || this.el;
       model.setAttribute('animation-mixer', {clip: animName, loop: 'repeat'});
     }
   },
@@ -108,20 +107,18 @@ AFRAME.registerComponent('character-move', {
     this.joystickPosition.style.top = `${this.startPos.y + Math.sin(angle) * Math.min(distance, 50)}px`;
 
     if (distance > 5) {
+      // カメラの回転を考慮して、進む向きを「逆」にならないよう修正
       const camY = this.camera.object3D.rotation.y;
+      const moveAngle = angle + camY + Math.PI / 2; // ここで向きを補正
       
-      // 移動方向の修正
-      const moveAngle = angle + camY + Math.PI / 2;
       const speed = 0.005;
-      
       this.el.object3D.position.x += Math.cos(moveAngle) * speed * timeDelta;
       this.el.object3D.position.z += Math.sin(moveAngle) * speed * timeDelta;
-      this.el.object3D.position.y = -3.0;
-
-      // 体の向き
+      
+      // キャラクターの体の向きを進行方向に合わせる
       this.el.object3D.rotation.y = -moveAngle + Math.PI;
 
-      this.setAnimation("WALK");
+      this.setAnimation("WALK"); // 歩行アニメを再生
     } else {
       this.setAnimation("IDLE");
     }
